@@ -3,6 +3,7 @@ package br.com.postech.estacionamento.parquimetro.domain.model;
 import java.time.LocalDateTime;
 
 import org.springframework.data.annotation.Id;
+import org.springframework.data.mongodb.core.index.TextIndexed;
 import org.springframework.data.mongodb.core.mapping.Document;
 
 import lombok.Getter;
@@ -13,6 +14,7 @@ public class Ticket {
 
 	@Id
     private String idTicket;
+	@TextIndexed // Indica que o campo é indexado para pesquisas melhorando a performance
     private String placaVeiculo;
     private LocalDateTime horarioEntrada;
     private LocalDateTime horarioSaida;

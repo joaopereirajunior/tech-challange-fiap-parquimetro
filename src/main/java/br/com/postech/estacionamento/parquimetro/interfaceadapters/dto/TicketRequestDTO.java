@@ -2,6 +2,5 @@ package br.com.postech.estacionamento.parquimetro.interfaceadapters.dto;
 
 public record TicketRequestDTO (
 		
-		String placaVeiculo,
-		Double valorHora
+		String placaVeiculo
 ) {}
