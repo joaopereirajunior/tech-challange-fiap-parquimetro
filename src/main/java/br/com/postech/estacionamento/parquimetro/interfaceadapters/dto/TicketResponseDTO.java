@@ -10,5 +10,5 @@ public record TicketResponseDTO (
 		LocalDateTime horarioSaida,
 		Double valorHora,
 		Double valorFinal,
-		boolean estaPago
+		String mensagem
 ) {}

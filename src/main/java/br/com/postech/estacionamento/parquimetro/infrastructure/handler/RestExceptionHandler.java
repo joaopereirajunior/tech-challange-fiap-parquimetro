@@ -20,4 +20,22 @@ public class RestExceptionHandler {
         }
         return new ResponseEntity<>(errors, HttpStatus.BAD_REQUEST);
     }
+
+    @ExceptionHandler(RuntimeException.class)
+    public ResponseEntity<Map<String, String>> handleRuntimeException(RuntimeException ex) {
+        Map<String, String> errors = new HashMap<>();
+        
+        errors.put("Erro ao processar a requisição: ", ex.getMessage());
+        
+        return new ResponseEntity<>(errors, HttpStatus.BAD_REQUEST);
+    }
+
+    @ExceptionHandler(EntityNotFoundException.class)
+    public ResponseEntity<Map<String, String>> handleEntityNotFoundException(EntityNotFoundException ex) {
+        Map<String, String> errors = new HashMap<>();
+        
+        errors.put("Erro ao processar a requisição: ", ex.getMessage());
+        
+        return new ResponseEntity<>(errors, HttpStatus.BAD_REQUEST);
+    }
 }
