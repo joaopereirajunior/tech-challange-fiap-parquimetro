@@ -12,8 +12,4 @@ public interface TicketRepository extends MongoRepository<Ticket, String> {
     public List<Ticket> findTicketByPlacaVeiculo(String placa);
 
     public Ticket findTicketByIdTicket(String idTicket);
-
-    @Query("{ $and: [{'placaVeiculo': { $eq: ?0 }}, {'horarioSaida': {$eq: null}}]}")
-    public Ticket obterArtigoPorDataHora(String placa);
-
 }
