@@ -2,21 +2,21 @@ package br.com.postech.estacionamento.parquimetro.domain.service.impl;
 
 import java.time.Duration;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 import br.com.postech.estacionamento.parquimetro.domain.model.Ticket;
 import br.com.postech.estacionamento.parquimetro.domain.repository.TicketRepository;
 import br.com.postech.estacionamento.parquimetro.domain.service.TicketService;
+import br.com.postech.estacionamento.parquimetro.infrastructure.handler.EntityNotFoundException;
+import br.com.postech.estacionamento.parquimetro.interfaceadapters.dto.TicketRequestDTO;
 import br.com.postech.estacionamento.parquimetro.interfaceadapters.dto.TicketResponseDTO;
 import br.com.postech.estacionamento.parquimetro.utils.Validador;
 
@@ -35,25 +35,19 @@ public class TicketServiceImpl implements TicketService {
 	}
 
 	@Override
-	public ResponseEntity<?> criarTicket(String placaVeiculo) {
+	public Optional<TicketResponseDTO> criarTicket(TicketRequestDTO ticketRequestDTO) {
 		try {
 
-			// Verifica se a formatacao da placa é válida
-			if (!Validador.validaPlaca(placaVeiculo)) {
-				return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("A placa " + placaVeiculo
-						+ " é inválida. Apenas os formatos ABC1234 e ABC1D23 são permitidos.");
-			}
+			var placaVeiculo = ticketRequestDTO.placaVeiculo();
 
 			// Verifica se o valor de hora foi parametrizado corretamente
 			if (valorHora <= 0) {
-				return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(
-						"O valor da hora deve ser informado de acordo. Verifique o arquivo de propriedades (postech.estacionamento.parquimetro.valorHora)");
+				throw new RuntimeException("O valor da hora deve ser informado de acordo. Verifique o arquivo de propriedades (postech.estacionamento.parquimetro.valorHora)");
 			}
 
 			// Verifica se o ticket ja esta ativo (veiculo estacionado)
-			if (consultarTicketAbertoPorPlaca(placaVeiculo)) {
-				return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("A placa " + placaVeiculo
-						+ " já esta cadastrada.");
+			if (consultarTicketAbertoPorPlaca(ticketRequestDTO)) {
+				throw new RuntimeException("A placa " + placaVeiculo + " já esta cadastrada.");
 			}
 
 			// Cria a instancia do objeto Ticket
@@ -71,29 +65,35 @@ public class TicketServiceImpl implements TicketService {
 			// Converte o objeto para o formato de saida
 			TicketResponseDTO ticketResponseDTO = converterParaDTO(ticket);
 
-			return ResponseEntity.status(HttpStatus.CREATED).body(ticketResponseDTO);
+			return Optional.of(ticketResponseDTO);
 
 		} catch (Exception e) {
 			// Em caso de erro não tratado retorna a mensagem
-			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Erro ao atualizar " + e.getMessage());
+			throw new RuntimeException("Erro ao criar o ticket: " + e.getMessage());
 		}
 	}
 
 	@Override
-	public ResponseEntity<?> encerrarTicket(String idTicket) {
+	public Optional<TicketResponseDTO> encerrarTicket(TicketRequestDTO ticketRequestDTO) {
 		try {
 			// Caso seja feita uma exclusão a nível de base o metodo seria este abaixo
 			// Entretanto faremos a exclusão de forma lógica a fim de manter o histórico
 			// this.ticketRepository.deleteById(ticketId);
 
-			// Realiza o encerramento em forma logica
-			Ticket ticket = this.ticketRepository.findTicketByIdTicket(idTicket);
+			Criteria criteria = new Criteria();
+			var placaVeiculo = ticketRequestDTO.placaVeiculo();
 
+			// Monta filtro por placa e por horario de saida
+			criteria.and("placaVeiculo").is(placaVeiculo);
+			criteria.and("horarioSaida").isNull();
+			
+			// Realiza o encerramento em forma logica
+			Ticket ticket = this.mongoTemplate.findOne(new Query(criteria), Ticket.class);
+			
 			// VPesquisa o ticket a ser encerrado
 			if (ticket == null || ticket.getHorarioSaida() != null) {
-				return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-						.body("Não foi possível realizar o encerramento. O ticket de Id " +
-								idTicket + " não foi encontrado ou já esta encerrado.");
+				throw new RuntimeException("Não foi possível realizar o encerramento. O veículo com placa " +
+				placaVeiculo + " não foi encontrado ou já esta encerrado.");
 			}
 
 			// Aplica as regras de encerramento
@@ -105,36 +105,39 @@ public class TicketServiceImpl implements TicketService {
 					.toHours() + 1;
 			ticket.setValorFinal(ticket.getValorHora() * duracaoTicketEmHoras);
 
-			// TODO: Discutir esta variavel e o momento que atualizaremos
-			ticket.setPago(true);
-
 			// Persiste o objeto em base
 			this.ticketRepository.save(ticket);
 
-			return ResponseEntity.status(HttpStatus.OK).body("O ticket de Id " + idTicket + " e placa "
-					+ ticket.getPlacaVeiculo() + " foi encerrado com sucesso!");
+			var mensagem ="O ticket para a placa " + placaVeiculo + " foi encerrado com sucesso!";
+
+			var ticketDTO = converterParaDTO(ticket, mensagem);
+
+			return Optional.of(ticketDTO);
 
 		} catch (Exception e) {
 			// Em caso de erro não tratado retorna a mensagem
-			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Erro ao encerrar " + e.getMessage());
+			throw new RuntimeException("Erro ao encerrar " + e.getMessage());
 		}
 	}
 
 	@Override
-	public ResponseEntity<?> consultarTicketPorPlaca(String placa) {
+	public Optional<List<TicketResponseDTO>> consultarTicketPorPlaca(String placa) {
 
-		Ticket ticket = this.ticketRepository.findTicketByPlacaVeiculo(placa);
+		if(!Validador.validaPlaca(placa))
+			throw new RuntimeException("A placa informada é inválida. Apenas os formatos ABC1234 e ABC1D23 são permitidos.");
 
-		if (ticket == null) {
-			return ResponseEntity.status(HttpStatus.NOT_FOUND)
-					.body("O ticket com a placa " + placa + " não foi encontrado");
+		var tickets = this.ticketRepository.findTicketByPlacaVeiculo(placa);
+
+		if (tickets == null || tickets.size() == 0) {
+			throw new EntityNotFoundException("O ticket com a placa " + placa + " não foi encontrado");
 		} else {
-			return ResponseEntity.status(HttpStatus.OK).body(converterParaDTO(ticket));
+			return Optional.of(tickets.stream().map(p -> converterParaDTO(p)).collect(Collectors.toList()));
 		}
 	}
 
 	@Override
-	public Boolean consultarTicketAbertoPorPlaca(String placa) {
+	public Boolean consultarTicketAbertoPorPlaca(TicketRequestDTO ticketRequestDTO) {
+		var placa = ticketRequestDTO.placaVeiculo();
 		Criteria criteria = new Criteria();
 
 		// Monta filtro por placa e por horario de saida
@@ -145,35 +148,34 @@ public class TicketServiceImpl implements TicketService {
 	}
 
 	@Override
-	public ResponseEntity<?> consultarTickets() {
+	public Optional<List<TicketResponseDTO>> consultarTickets() {
 		Criteria criteria = new Criteria();
 
 		// Monta filtro por placa e por horario de saida
 		criteria.and("horarioSaida").isNull();
 
-		List<TicketResponseDTO> tickets = new ArrayList<>();
-
-		for (Ticket ticket : this.ticketRepository.findAll()) {
-			tickets.add(converterParaDTO(ticket));
-		}
+		List<Ticket> tickets = this.ticketRepository.findAll();
 
 		if (tickets.size() > 0) {
-			return ResponseEntity.status(HttpStatus.OK).body(tickets);
+			return Optional.of(tickets.stream().map(p -> converterParaDTO(p)).collect(Collectors.toList()));
 		} else {
-			return ResponseEntity.status(HttpStatus.NOT_FOUND)
-					.body("Não foram encontrados tickets ativos");
+			throw new EntityNotFoundException("Não foram encontrados tickets ativos");
 		}
 
 	}
 
 	private TicketResponseDTO converterParaDTO(Ticket ticket) {
+		return this.converterParaDTO(ticket, null);
+	}
+
+	private TicketResponseDTO converterParaDTO(Ticket ticket, String mensagem) {
 		if (ticket == null) {
 			return null;
 		}
 
 		return new TicketResponseDTO(ticket.getIdTicket(), ticket.getPlacaVeiculo(),
 				ticket.getHorarioEntrada(), ticket.getHorarioSaida(), ticket.getValorHora(),
-				ticket.getValorFinal(), ticket.isPago());
+				ticket.getValorFinal(), mensagem);
 	}
 
 }

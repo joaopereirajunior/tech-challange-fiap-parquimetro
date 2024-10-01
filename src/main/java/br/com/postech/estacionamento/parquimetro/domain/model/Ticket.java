@@ -20,18 +20,16 @@ public class Ticket {
     private LocalDateTime horarioSaida;
     private Double valorHora;
     private Double valorFinal;
-    private boolean pago;
     
     public Ticket() {}
 
 	public Ticket(String placaVeiculo, LocalDateTime horarioEntrada, LocalDateTime horarioSaida,
-			Double valorHora, Double valorFinal, boolean pago) {
+			Double valorHora, Double valorFinal) {
 		this.placaVeiculo = placaVeiculo;
 		this.horarioEntrada = horarioEntrada;
 		this.horarioSaida = horarioSaida;
 		this.valorHora = valorHora;
 		this.valorFinal = valorFinal;
-		this.pago = pago;
 	}
 
 	public String getIdTicket() {
@@ -76,14 +74,5 @@ public class Ticket {
 
 	public void setValorFinal(Double valorFinal) {
 		this.valorFinal = valorFinal;
-	}
-
-	public boolean isPago() {
-		return pago;
-	}
-
-	public void setPago(boolean pago) {
-		this.pago = pago;
-	}
-    
+	}    
 }

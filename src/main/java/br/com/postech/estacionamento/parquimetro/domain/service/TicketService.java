@@ -1,10 +1,7 @@
 package br.com.postech.estacionamento.parquimetro.domain.service;
 
-import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
-
-import org.springframework.http.ResponseEntity;
 
 import br.com.postech.estacionamento.parquimetro.interfaceadapters.dto.TicketRequestDTO;
 import br.com.postech.estacionamento.parquimetro.interfaceadapters.dto.TicketResponseDTO;
@@ -16,33 +13,33 @@ public interface TicketService {
      *
      * @param placaVeiculo a placa do ticket a ser criada
      */
-	public ResponseEntity<?> criarTicket(String placaVeiculo);
+	public Optional<TicketResponseDTO> criarTicket(TicketRequestDTO ticketRequestDTO);
 
     /**
      * Encerra o ciclo do Ticket em aberto.
      *
      * @param ticketId informando o Ticket a ser encerrado.
      */
-	public ResponseEntity<?> encerrarTicket(String ticketId);
+	public Optional<TicketResponseDTO> encerrarTicket(TicketRequestDTO ticketRequestDTO);
 	
     /**
      * Retorna um ticket específico através de um ticketId informado.
      *
      * @param placa informando a placa do veículo a ser buscado.
      */
-	public ResponseEntity<?> consultarTicketPorPlaca(String placa);
+	public Optional<List<TicketResponseDTO>> consultarTicketPorPlaca(String placa);
 
     /**
      * Retorna a lista de tickets ativos (estacionados)
      *
      */
-	public ResponseEntity<?> consultarTickets();
+	public Optional<List<TicketResponseDTO>> consultarTickets();
 
     /**
      * Retorna se o ticket ja esta aberto por placa
      *
      * @param placa informando a placa do veículo a ser buscado.
      */
-    public Boolean consultarTicketAbertoPorPlaca(String placa);
+    public Boolean consultarTicketAbertoPorPlaca(TicketRequestDTO ticketRequestDTO);
 	
 }
