@@ -62,8 +62,10 @@ public class TicketServiceImpl implements TicketService {
 			// Persiste o objeto em base
 			this.ticketRepository.save(ticket);
 
+			var mensagem = "O ticket para a placa " + placaVeiculo + " foi criado com sucesso!";
+
 			// Converte o objeto para o formato de saida
-			TicketResponseDTO ticketResponseDTO = converterParaDTO(ticket);
+			TicketResponseDTO ticketResponseDTO = converterParaDTO(ticket, mensagem);
 
 			return Optional.of(ticketResponseDTO);
 

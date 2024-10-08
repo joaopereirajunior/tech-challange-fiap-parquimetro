@@ -13,10 +13,13 @@ import org.springframework.web.bind.annotation.RestController;
 import br.com.postech.estacionamento.parquimetro.domain.service.TicketService;
 import br.com.postech.estacionamento.parquimetro.interfaceadapters.dto.TicketRequestDTO;
 import br.com.postech.estacionamento.parquimetro.interfaceadapters.dto.TicketResponseDTO;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 
 @RestController
 @RequestMapping("/tickets")
+@Tag(name = "Parquímetro", description = "Operações relacionadas a parquímetro.")
 public class TicketController {
 
 	private final TicketService ticketService;
@@ -25,24 +28,28 @@ public class TicketController {
 		this.ticketService = ticketService;
 	}
 	
+    @Operation(description = "Efetua a criação/inicialização de um ticket e retorna os dados do mesmo.")
     @PostMapping("/criar")
     public ResponseEntity<Optional<TicketResponseDTO>> criar(@RequestBody @Valid TicketRequestDTO ticketRequestDTO) {
         var ticketResponseDTO = this.ticketService.criarTicket(ticketRequestDTO);
     	return ResponseEntity.ok(ticketResponseDTO);
     }
 
+    @Operation(description = "Finaliza/encerra o ticket, calcula o valor do período utilizado e retorna os dados do mesmo.")
 	@PatchMapping("/encerrar")
     public ResponseEntity<Optional<TicketResponseDTO>> encerrar(@RequestBody @Valid TicketRequestDTO ticketRequestDTO) {
         var ticketResponseDTO = this.ticketService.encerrarTicket(ticketRequestDTO);
         return ResponseEntity.ok(ticketResponseDTO);
     }
 
+    @Operation(description = "Consulta por placa: Lista todos os ticktes de um determinado veículo.")
 	@GetMapping("/consultar-por-placa/{placa}")
     public ResponseEntity<Optional<List<TicketResponseDTO>>> consultar(@PathVariable(required = true) String placa) {
         var ticketResponseDTO = this.ticketService.consultarTicketPorPlaca(placa);
         return ResponseEntity.ok(ticketResponseDTO);
     }
 
+    @Operation(description = "Lista todos os tickes da base de dados.")
 	@GetMapping("/consultar")
     public ResponseEntity<Optional<List<TicketResponseDTO>>> consultarTickets() {
         var tickets = this.ticketService.consultarTickets();
