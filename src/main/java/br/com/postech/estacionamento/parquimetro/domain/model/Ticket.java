@@ -20,16 +20,17 @@ public class Ticket {
     private LocalDateTime horarioSaida;
     private Double valorHora;
     private Double valorFinal;
-    
+    private String observacao;
     public Ticket() {}
 
 	public Ticket(String placaVeiculo, LocalDateTime horarioEntrada, LocalDateTime horarioSaida,
-			Double valorHora, Double valorFinal) {
+			Double valorHora, Double valorFinal, String observacao) {
 		this.placaVeiculo = placaVeiculo;
 		this.horarioEntrada = horarioEntrada;
 		this.horarioSaida = horarioSaida;
 		this.valorHora = valorHora;
 		this.valorFinal = valorFinal;
+		this.observacao = observacao;
 	}
 
 	public String getIdTicket() {
@@ -56,6 +57,10 @@ public class Ticket {
 		return horarioSaida;
 	}
 
+	public String getObservacao(){
+		return observacao;
+	}
+	
 	public void setHorarioSaida(LocalDateTime horarioSaida) {
 		this.horarioSaida = horarioSaida;
 	}
@@ -74,5 +79,9 @@ public class Ticket {
 
 	public void setValorFinal(Double valorFinal) {
 		this.valorFinal = valorFinal;
-	}    
+	}
+	
+	public void setObservacao(String observacao){
+		this.observacao = observacao;
+	}
 }

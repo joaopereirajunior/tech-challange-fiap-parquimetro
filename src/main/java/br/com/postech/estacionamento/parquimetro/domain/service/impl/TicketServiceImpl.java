@@ -58,14 +58,13 @@ public class TicketServiceImpl implements TicketService {
 			ticket.setPlacaVeiculo(placaVeiculo.toUpperCase());
 			ticket.setValorHora(valorHora);
 			ticket.setHorarioEntrada(LocalDateTime.now());
+			ticket.setObservacao("O ticket para a placa " + placaVeiculo + " foi criado com sucesso!");
 
 			// Persiste o objeto em base
 			this.ticketRepository.save(ticket);
 
-			var mensagem = "O ticket para a placa " + placaVeiculo + " foi criado com sucesso!";
-
 			// Converte o objeto para o formato de saida
-			TicketResponseDTO ticketResponseDTO = converterParaDTO(ticket, mensagem);
+			TicketResponseDTO ticketResponseDTO = converterParaDTO(ticket);
 
 			return Optional.of(ticketResponseDTO);
 
@@ -106,13 +105,12 @@ public class TicketServiceImpl implements TicketService {
 			var duracaoTicketEmHoras = Duration.between(ticket.getHorarioEntrada(), ticket.getHorarioSaida())
 					.toHours() + 1;
 			ticket.setValorFinal(ticket.getValorHora() * duracaoTicketEmHoras);
+			ticket.setObservacao("O ticket para a placa " + placaVeiculo + " foi encerrado com sucesso!");
 
 			// Persiste o objeto em base
 			this.ticketRepository.save(ticket);
 
-			var mensagem ="O ticket para a placa " + placaVeiculo + " foi encerrado com sucesso!";
-
-			var ticketDTO = converterParaDTO(ticket, mensagem);
+			var ticketDTO = converterParaDTO(ticket);
 
 			return Optional.of(ticketDTO);
 
@@ -167,17 +165,13 @@ public class TicketServiceImpl implements TicketService {
 	}
 
 	private TicketResponseDTO converterParaDTO(Ticket ticket) {
-		return this.converterParaDTO(ticket, null);
-	}
-
-	private TicketResponseDTO converterParaDTO(Ticket ticket, String mensagem) {
 		if (ticket == null) {
 			return null;
 		}
 
 		return new TicketResponseDTO(ticket.getIdTicket(), ticket.getPlacaVeiculo(),
 				ticket.getHorarioEntrada(), ticket.getHorarioSaida(), ticket.getValorHora(),
-				ticket.getValorFinal(), mensagem);
+				ticket.getValorFinal(), ticket.getObservacao());
 	}
 
 }
