@@ -58,7 +58,7 @@ public class TicketServiceImpl implements TicketService {
 			ticket.setPlacaVeiculo(placaVeiculo.toUpperCase());
 			ticket.setValorHora(valorHora);
 			ticket.setHorarioEntrada(LocalDateTime.now());
-			ticket.setObservacao("O ticket para a placa " + placaVeiculo + " foi criado com sucesso!");
+			ticket.setObservacao("O ticket para a placa " + placaVeiculo.toUpperCase() + " foi criado com sucesso!");
 
 			// Persiste o objeto em base
 			this.ticketRepository.save(ticket);
@@ -105,7 +105,7 @@ public class TicketServiceImpl implements TicketService {
 			var duracaoTicketEmHoras = Duration.between(ticket.getHorarioEntrada(), ticket.getHorarioSaida())
 					.toHours() + 1;
 			ticket.setValorFinal(ticket.getValorHora() * duracaoTicketEmHoras);
-			ticket.setObservacao("O ticket para a placa " + placaVeiculo + " foi encerrado com sucesso!");
+			ticket.setObservacao("O ticket para a placa " + placaVeiculo.toUpperCase() + " foi encerrado com sucesso!");
 
 			// Persiste o objeto em base
 			this.ticketRepository.save(ticket);
