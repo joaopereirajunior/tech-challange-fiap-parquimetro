@@ -31,11 +31,11 @@ Para rodar a aplicação, siga os comandos abaixo:
     
 **docker run** inicia um novo container a partir de uma imagem especificada.
 
-**-p 8080:8080**  mapeia a porta 8080 do host (computador local) para a porta 8080 do container, permitindo o acesso ao serviço que roda no container através da porta 8080 do host.
+**-p 8080:8080** mapeia a porta 8080 do host (computador local) para a porta 8080 do container, permitindo o acesso ao serviço que roda no container através da porta 8080 do host.
 
-**-e MONGODB_USERNAME** e **-e MONGODB_PASSWORD**  Define variáveis de ambiente no container.
+**-e MONGODB_USERNAME** e **-e MONGODB_PASSWORD** definem variáveis de ambiente no container.
 
-**-d** Executa o container em segundo plano, sem ocupar o terminal.
+**-d** executa o container em segundo plano, sem ocupar o terminal.
 
 **romulosousa865/parquimetro_app:latest** a imagem que será usada para criar o container.
 
